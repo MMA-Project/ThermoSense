@@ -1,0 +1,3 @@
+class ActuatorRepository {}
+
+export { ActuatorRepository };

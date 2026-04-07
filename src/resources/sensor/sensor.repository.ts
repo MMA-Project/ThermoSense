@@ -1,0 +1,3 @@
+class SensorRepository {}
+
+export { SensorRepository };

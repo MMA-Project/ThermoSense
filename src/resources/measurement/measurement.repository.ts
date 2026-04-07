@@ -1,0 +1,3 @@
+class MeasurementRepository {}
+
+export { MeasurementRepository };

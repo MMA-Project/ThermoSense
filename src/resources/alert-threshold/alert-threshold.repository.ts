@@ -1,0 +1,3 @@
+class AlertThresholdRepository {}
+
+export { AlertThresholdRepository };
