@@ -1,0 +1,352 @@
+openapi: 3.0.3
+info:
+ title: API ThermalSense
+ version: 1.0.0
+tags:
+ - name: Bâtiment
+ - name: zone
+ - name: capteur
+ - name: measurement
+ - name: actionneur
+ - name: seuil d'alerte
+
+
+# composants réutilisables, sécurité et en-têtes
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: payload avec user_id
+  responses:
+    RateLimitExceeded:
+      description: too many requests
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+
+
+# application globale du jwt
+security:
+  - bearerAuth: []
+
+
+paths:
+ /building:
+   get:
+     tags: [Bâtiment]
+     summary: récupère tous les bâtiments
+     responses:
+       '200': {description: OK}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+   post:
+     tags: [Bâtiment]
+     summary: crée un bâtiment
+     responses:
+       '201': {description: created}
+       '400': {description: bad request}
+       '500': {description: internal server error}
+ /building/{id}:
+   parameters:
+     - in: path
+       name: id
+       required: true
+       schema: {type: string}
+   get:
+     tags: [Bâtiment]
+     summary: récupère un bâtiment selon son ID
+     responses:
+       '200': {description: OK}
+       '404': {description: not found}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+   patch:
+     tags: [Bâtiment]
+     summary: modifie un bâtiment
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+   delete:
+     tags: [Bâtiment]
+     summary: supprime un bâtiment
+     responses:
+       '204': {description: no content}
+       '404': {description: not found}
+       '500': {description: internal server error}
+
+
+ /zone:
+   get:
+     tags: [zone]
+     summary: récupère toutes les zones, optionnellement filtrées selon leur bâtiment
+     parameters:
+       - in: query
+         name: building
+         schema: {type: string}
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+ /zone/{id}:
+   parameters:
+     - in: path
+       name: id
+       required: true
+       schema: {type: string}
+   get:
+     tags: [zone]
+     summary: récupère une zone selon son ID
+     responses:
+       '200': {description: OK}
+       '404': {description: not found}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+   patch:
+     tags: [zone]
+     summary: modifie une zone
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+   delete:
+     tags: [zone]
+     summary: supprime une zone
+     responses:
+       '204': {description: no content}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /building/{id}/zone:
+   post:
+     tags: [zone]
+     summary: crée une zone
+     parameters:
+       - in: path
+         name: id
+         required: true
+         schema: {type: string}
+     responses:
+       '201': {description: created}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /sensor:
+   get:
+     tags: [capteur]
+     summary: récupère tous les capteurs, optionnellement filtrés selon le bâtiment ou la zone
+     parameters:
+       - in: query
+         name: building
+         schema: {type: string}
+       - in: query
+         name: zone
+         schema: {type: string}
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+ /sensor/{id}:
+   parameters:
+     - in: path
+       name: id
+       required: true
+       schema: {type: string}
+   get:
+     tags: [capteur]
+     summary: récupère un capteur selon son ID
+     responses:
+       '200': {description: OK}
+       '404': {description: not found}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+   patch:
+     tags: [capteur]
+     summary: modifie un capteur
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+   delete:
+     tags: [capteur]
+     summary: supprime un capteur
+     responses:
+       '204': {description: no content}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /zone/{id}/sensor:
+   post:
+     tags: [capteur]
+     summary: crée un capteur
+     parameters:
+       - in: path
+         name: id
+         required: true
+         schema: {type: string}
+     responses:
+       '201': {description: created}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /measurement:
+   get:
+     tags: [measurement]
+     summary: récupère toutes les mesures issues d’un capteur, optionnellement filtrées
+     parameters:
+       - in: query
+         name: zoneId
+         schema: {type: string}
+       - in: query
+         name: sensorId
+         schema: {type: string}
+       - in: query
+         name: type
+         schema: {type: string}
+       - in: query
+         name: startDate
+         schema: {type: string, format: date-time}
+       - in: query
+         name: endDate
+         schema: {type: string, format: date-time}
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+ /sensor/{id}/measurement:
+   post:
+     tags: [measurement]
+     summary: crée une mesure pour un capteur
+     parameters:
+       - in: path
+         name: id
+         required: true
+         schema: {type: string}
+     responses:
+       '201': {description: created}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /actuator:
+   get:
+     tags: [actionneur]
+     summary: récupère tous les actionneurs, optionnellement filtrés selon le bâtiment ou la zone
+     parameters:
+       - in: query
+         name: building
+         schema: {type: string}
+       - in: query
+         name: zone
+         schema: {type: string}
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+ /actuator/{id}:
+   parameters:
+     - in: path
+       name: id
+       required: true
+       schema: {type: string}
+   get:
+     tags: [actionneur]
+     summary: récupère un actionneur selon son ID
+     responses:
+       '200': {description: OK}
+       '404': {description: not found}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+   patch:
+     tags: [actionneur]
+     summary: modifie un actionneur
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+   delete:
+     tags: [actionneur]
+     summary: supprime un actionneur
+     responses:
+       '204': {description: no content}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /zone/{id}/actuator:
+   post:
+     tags: [actionneur]
+     summary: crée un actionneur
+     parameters:
+       - in: path
+         name: id
+         required: true
+         schema: {type: string}
+     responses:
+       '201': {description: created}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /alert-threshold:
+   get:
+     tags: [seuil d'alerte]
+     summary: récupère les seuils d'alerte filtrés
+     parameters:
+       - in: query
+         name: zone
+         schema: {type: string}
+       - in: query
+         name: type
+         schema: {type: string}
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+	 '429': $ref: '#/components/responses/RateLimitExceeded'
+       '500': {description: internal server error}
+ /alert-threshold/{id}:
+   parameters:
+     - in: path
+       name: id
+       required: true
+       schema: {type: string}
+   patch:
+     tags: [seuil d'alerte]
+     summary: modifie un seuil d'alerte
+     responses:
+       '200': {description: OK}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
+   delete:
+     tags: [seuil d'alerte]
+     summary: supprime un seuil d'alerte
+     responses:
+       '204': {description: no content}
+       '404': {description: not found}
+       '500': {description: internal server error}
+ /zone/{id}/alert-threshold:
+   post:
+     tags: [seuil d'alerte]
+     summary: crée un seuil d'alerte
+     parameters:
+       - in: path
+         name: id
+         required: true
+         schema: {type: string}
+     responses:
+       '201': {description: created}
+       '400': {description: bad request}
+       '404': {description: not found}
+       '500': {description: internal server error}
