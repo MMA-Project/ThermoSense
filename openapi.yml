@@ -11,7 +11,7 @@ tags:
  - name: seuil d'alerte
 
 
-# composants réutilisables, sécurité et en-têtes
+# Composants réutilisables, sécurité et en-têtes
 components:
   securitySchemes:
     bearerAuth:
@@ -32,6 +32,197 @@ components:
         X-RateLimit-Reset:
           schema:
             type: integer
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+      required:
+        - code
+        - message
+
+    Building:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the building
+        name:
+          type: string
+          description: Name of the building
+        address:
+          type: string
+          description: Address of the building
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - name
+
+    Zone:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the zone
+        name:
+          type: string
+          description: Name of the zone
+        buildingId:
+          type: string
+          description: ID of the building this zone belongs to
+        description:
+          type: string
+          description: Description of the zone
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - name
+        - buildingId
+
+    Sensor:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the sensor
+        name:
+          type: string
+          description: Name of the sensor
+        zoneId:
+          type: string
+          description: ID of the zone this sensor belongs to
+        type:
+          type: string
+          description: Type of sensor (e.g., temperature, humidity)
+        status:
+          type: string
+          enum: [active, inactive]
+          description: Status of the sensor
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - name
+        - zoneId
+        - type
+        
+    Actuator:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the actuator
+        name:
+          type: string
+          description: Name of the actuator
+        zoneId:
+          type: string
+          description: ID of the zone this actuator belongs to
+        type:
+          type: string
+          description: Type of actuator (e.g., heater, cooler)
+        status:
+          type: string
+          enum: [active, inactive]
+          description: Status of the actuator
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - name
+        - zoneId
+        - type
+    Measurement:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the measurement
+        sensorId:
+          type: string
+          description: ID of the sensor that took the measurement
+        value:
+          type: number
+          description: Measured value
+        unit:
+          type: string
+          description: Unit of the measurement
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the measurement
+      required:
+        - sensorId
+        - value
+        - timestamp
+
+    AlertThreshold:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the alert threshold
+        zoneId:
+          type: string
+          description: ID of the zone this threshold applies to
+        type:
+          type: string
+          description: Type of measurement this threshold is for
+        minValue:
+          type: number
+          description: Minimum threshold value
+        maxValue:
+          type: number
+          description: Maximum threshold value
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - zoneId
+        - type
+
+    GenericRequest:
+      type: object
+      properties:
+        eTag:
+          type: string
+          description: Entity tag for caching and conditional requests
+        idempotencyKey:
+          type: string
+          description: Key to ensure idempotent requests
+      description: Generic request model with optional eTag and idempotency key
 
 
 # application globale du jwt
@@ -45,16 +236,50 @@ paths:
      tags: [Bâtiment]
      summary: récupère tous les bâtiments
      responses:
-       '200': {description: OK}
-	     '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 $ref: '#/components/schemas/Building'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    post:
      tags: [Bâtiment]
      summary: crée un bâtiment
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Building'
      responses:
-       '201': {description: created}
-       '400': {description: bad request}
-       '500': {description: internal server error}
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Building'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /building/{id}:
    parameters:
      - in: path
@@ -65,25 +290,77 @@ paths:
      tags: [Bâtiment]
      summary: récupère un bâtiment selon son ID
      responses:
-       '200': {description: OK}
-       '404': {description: not found}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Building'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    patch:
      tags: [Bâtiment]
      summary: modifie un bâtiment
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Building'
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Building'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    delete:
      tags: [Bâtiment]
      summary: supprime un bâtiment
      responses:
        '204': {description: no content}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
 
 
  /zone:
@@ -95,10 +372,28 @@ paths:
          name: building
          schema: {type: string}
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 $ref: '#/components/schemas/Zone'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /zone/{id}:
    parameters:
      - in: path
@@ -109,25 +404,77 @@ paths:
      tags: [zone]
      summary: récupère une zone selon son ID
      responses:
-       '200': {description: OK}
-       '404': {description: not found}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Zone'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    patch:
      tags: [zone]
      summary: modifie une zone
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Zone'
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Zone'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    delete:
      tags: [zone]
      summary: supprime une zone
      responses:
        '204': {description: no content}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /building/{id}/zone:
    post:
      tags: [zone]
@@ -137,11 +484,37 @@ paths:
          name: id
          required: true
          schema: {type: string}
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Zone'
      responses:
-       '201': {description: created}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Zone'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /sensor:
    get:
      tags: [capteur]
@@ -154,10 +527,28 @@ paths:
          name: zone
          schema: {type: string}
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 $ref: '#/components/schemas/Sensor'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /sensor/{id}:
    parameters:
      - in: path
@@ -168,25 +559,77 @@ paths:
      tags: [capteur]
      summary: récupère un capteur selon son ID
      responses:
-       '200': {description: OK}
-       '404': {description: not found}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Sensor'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    patch:
      tags: [capteur]
      summary: modifie un capteur
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Sensor'
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Sensor'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    delete:
      tags: [capteur]
      summary: supprime un capteur
      responses:
        '204': {description: no content}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /zone/{id}/sensor:
    post:
      tags: [capteur]
@@ -196,11 +639,37 @@ paths:
          name: id
          required: true
          schema: {type: string}
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Sensor'
      responses:
-       '201': {description: created}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Sensor'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /measurement:
    get:
      tags: [measurement]
@@ -222,10 +691,28 @@ paths:
          name: endDate
          schema: {type: string, format: date-time}
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 $ref: '#/components/schemas/Measurement'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /sensor/{id}/measurement:
    post:
      tags: [measurement]
@@ -235,11 +722,37 @@ paths:
          name: id
          required: true
          schema: {type: string}
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Measurement'
      responses:
-       '201': {description: created}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Measurement'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /actuator:
    get:
      tags: [actionneur]
@@ -252,10 +765,28 @@ paths:
          name: zone
          schema: {type: string}
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 $ref: '#/components/schemas/Actuator'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /actuator/{id}:
    parameters:
      - in: path
@@ -266,25 +797,77 @@ paths:
      tags: [actionneur]
      summary: récupère un actionneur selon son ID
      responses:
-       '200': {description: OK}
-       '404': {description: not found}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Actuator'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    patch:
      tags: [actionneur]
      summary: modifie un actionneur
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Actuator'
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Actuator'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    delete:
      tags: [actionneur]
      summary: supprime un actionneur
      responses:
        '204': {description: no content}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /zone/{id}/actuator:
    post:
      tags: [actionneur]
@@ -294,11 +877,37 @@ paths:
          name: id
          required: true
          schema: {type: string}
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Actuator'
      responses:
-       '201': {description: created}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Actuator'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /alert-threshold:
    get:
      tags: [seuil d'alerte]
@@ -311,10 +920,28 @@ paths:
          name: type
          schema: {type: string}
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 $ref: '#/components/schemas/AlertThreshold'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '429':
+         $ref: '#/components/responses/RateLimitExceeded'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /alert-threshold/{id}:
    parameters:
      - in: path
@@ -324,18 +951,54 @@ paths:
    patch:
      tags: [seuil d'alerte]
      summary: modifie un seuil d'alerte
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/AlertThreshold'
      responses:
-       '200': {description: OK}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '200':
+         description: OK
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/AlertThreshold'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
    delete:
      tags: [seuil d'alerte]
      summary: supprime un seuil d'alerte
      responses:
        '204': {description: no content}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
  /zone/{id}/alert-threshold:
    post:
      tags: [seuil d'alerte]
@@ -345,8 +1008,34 @@ paths:
          name: id
          required: true
          schema: {type: string}
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/AlertThreshold'
      responses:
-       '201': {description: created}
-       '400': {description: bad request}
-       '404': {description: not found}
-       '500': {description: internal server error}
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/AlertThreshold'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
