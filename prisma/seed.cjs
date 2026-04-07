@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
@@ -35,6 +36,7 @@ function inferActuatorStateFromAction(action) {
 }
 
 async function main() {
+  await prisma.user.deleteMany();
   await prisma.actuatorCommand.deleteMany();
   await prisma.measurement.deleteMany();
   await prisma.alertThreshold.deleteMany();
@@ -48,6 +50,27 @@ async function main() {
       name: "ThermoSense HQ",
       address: "10 rue des Capteurs, Paris",
     },
+  });
+
+  // Seed Users
+  const adminPassword = await bcrypt.hash("admin123", 10);
+  const userPassword = await bcrypt.hash("user123", 10);
+
+  await prisma.user.createMany({
+    data: [
+      {
+        email: "admin@thermosense.com",
+        password: adminPassword,
+        name: "Admin User",
+        role: "admin",
+      },
+      {
+        email: "user@thermosense.com",
+        password: userPassword,
+        name: "Regular User",
+        role: "user",
+      },
+    ],
   });
 
   const zoneDefinitions = [

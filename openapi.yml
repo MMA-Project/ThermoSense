@@ -46,6 +46,62 @@ components:
         - code
         - message
 
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user
+        email:
+          type: string
+          description: Email of the user
+        name:
+          type: string
+          description: Name of the user
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - email
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+      required:
+        - user
+        - token
+
     Building:
       type: object
       properties:
@@ -279,6 +335,44 @@ security:
 
 
 paths:
+ /auth/register:
+   post:
+     tags: [Auth]
+     summary: s'enregistrer
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/RegisterRequest'
+     responses:
+       '201':
+         description: created
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/AuthResponse'
+       '400':
+         description: bad request
+ /auth/login:
+   post:
+     tags: [Auth]
+     summary: se connecter
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/LoginRequest'
+     responses:
+       '200':
+         description: ok
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/AuthResponse'
+       '401':
+         description: unauthorized
  /building:
    get:
      tags: [Bâtiment]
