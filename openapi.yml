@@ -147,6 +147,14 @@ components:
           type: string
           enum: [active, inactive]
           description: Status of the actuator
+        state:
+          type: string
+          enum: [open, closed, on, off]
+          description: Current physical state of the actuator
+        lastCommandAt:
+          type: string
+          format: date-time
+          description: Last command timestamp
         createdAt:
           type: string
           format: date-time
@@ -159,6 +167,46 @@ components:
         - name
         - zoneId
         - type
+
+    ActuatorCommandRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [open, close, on, off]
+          description: Command to apply to the actuator
+      required:
+        - action
+
+    ActuatorCommandResponse:
+      type: object
+      properties:
+        actuatorId:
+          type: string
+        action:
+          type: string
+          enum: [open, close, on, off]
+        previousState:
+          type: string
+          enum: [open, closed, on, off]
+        resultingState:
+          type: string
+          enum: [open, closed, on, off]
+        noOp:
+          type: boolean
+          description: True when actuator was already in requested state
+        executedAt:
+          type: string
+          format: date-time
+        message:
+          type: string
+      required:
+        - actuatorId
+        - action
+        - resultingState
+        - noOp
+        - executedAt
+        - message
     Measurement:
       type: object
       properties:
@@ -856,6 +904,46 @@ paths:
      summary: supprime un actionneur
      responses:
        '204': {description: no content}
+       '404':
+         description: not found
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+       '500':
+         description: internal server error
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
+ /actuator/{id}/command:
+   post:
+     tags: [actionneur]
+     summary: envoie une commande à un actionneur
+     parameters:
+       - in: path
+         name: id
+         required: true
+         schema: {type: string}
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/ActuatorCommandRequest'
+     responses:
+       '200':
+         description: command accepted
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/ActuatorCommandResponse'
+       '400':
+         description: bad request
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Error'
        '404':
          description: not found
          content:
