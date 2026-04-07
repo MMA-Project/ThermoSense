@@ -10,7 +10,7 @@ class UserService {
 
   constructor(userRepository: UserRepository) {
     this.userRepository = userRepository;
-    this.jwtSecret = process.env.JWT_SECRET ?? "default-secret-change-me";
+    this.jwtSecret = process.env.JWT_SECRET ?? "default";
   }
 
   private getDefaultScope(role: string): string[] {
@@ -43,8 +43,8 @@ class UserService {
     });
 
     const scope = this.getDefaultScope(user.role);
-    const token = jwt.sign({ userId: user.id, role: user.role, scope }, this.jwtSecret, {
-      expiresIn: "1d",
+    const token = jwt.sign({ userId: user.id, role: user.role, scope, aud: "thermosense", sub: "thermosense" }, this.jwtSecret, {
+      expiresIn: "15m",
     });
 
     const { password, ...userWithoutPassword } = user;
@@ -63,8 +63,8 @@ class UserService {
     }
 
     const scope = this.getDefaultScope(user.role);
-    const token = jwt.sign({ userId: user.id, role: user.role, scope }, this.jwtSecret, {
-      expiresIn: "1d",
+    const token = jwt.sign({ userId: user.id, role: user.role, scope, aud: "thermosense",sub:"thermosense" }, this.jwtSecret, {
+      expiresIn: "15m",
     });
 
     const { password, ...userWithoutPassword } = user;
