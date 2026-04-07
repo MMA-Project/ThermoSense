@@ -46,7 +46,7 @@ paths:
      summary: récupère tous les bâtiments
      responses:
        '200': {description: OK}
-	 '429': $ref: '#/components/responses/RateLimitExceeded'
+	     '429': $ref: '#/components/responses/RateLimitExceeded'
        '500': {description: internal server error}
    post:
      tags: [Bâtiment]
