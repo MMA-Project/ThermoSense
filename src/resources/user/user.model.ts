@@ -6,6 +6,7 @@ export const UserSchema = z.object({
   password: z.string(),
   name: z.string().optional(),
   role: z.string(),
+  zoneIds: z.array(z.string().cuid()),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -18,6 +19,7 @@ export const CreateUserSchema = UserSchema.pick({
   name: true,
 }).extend({
   role: z.string().optional(),
+  zoneIds: z.array(z.string().cuid()).optional(),
 });
 
 export type CreateUser = z.infer<typeof CreateUserSchema>;

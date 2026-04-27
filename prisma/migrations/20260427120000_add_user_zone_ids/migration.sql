@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "User"
+ADD COLUMN "zoneIds" TEXT[] DEFAULT ARRAY[]::TEXT[];
+
+UPDATE "User"
+SET "zoneIds" = ARRAY[]::TEXT[]
+WHERE "zoneIds" IS NULL;
+
+ALTER TABLE "User"
+ALTER COLUMN "zoneIds" SET NOT NULL;

@@ -27,10 +27,25 @@ class UserService {
         "zone:write",
       ];
     }
+
+    if (role === "operator") {
+      return [
+        "measurement:read",
+        "actuator:read",
+        "actuator:write",
+        "sensor:read",
+        "sensor:write",
+        "zone:read",
+        "alert-threshold:read",
+      ];
+    }
+
     return ["measurement:read", "actuator:read", "sensor:read", "zone:read"];
   }
 
-  async signup(data: CreateUser): Promise<{ token: string; user: Omit<User, "password"> }> {
+  async signup(
+    data: CreateUser,
+  ): Promise<{ token: string; user: Omit<User, "password"> }> {
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error("User already exists");
@@ -40,18 +55,32 @@ class UserService {
     const user = await this.userRepository.create({
       ...data,
       password: hashedPassword,
+      zoneIds: data.zoneIds ?? [],
     });
 
     const scope = this.getDefaultScope(user.role);
-    const token = jwt.sign({ userId: user.id, role: user.role, scope, aud: "thermosense", sub: "thermosense" }, this.jwtSecret, {
-      expiresIn: "15m",
-    });
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        scope,
+        zoneIds: user.zoneIds,
+        aud: "thermosense",
+        sub: "thermosense",
+      },
+      this.jwtSecret,
+      {
+        expiresIn: "15m",
+      },
+    );
 
     const { password, ...userWithoutPassword } = user;
     return { token, user: userWithoutPassword };
   }
 
-  async login(data: Login): Promise<{ token: string; user: Omit<User, "password"> }> {
+  async login(
+    data: Login,
+  ): Promise<{ token: string; user: Omit<User, "password"> }> {
     const user = await this.userRepository.findByEmail(data.email);
     if (!user) {
       throw new Error("Invalid email or password");
@@ -63,9 +92,20 @@ class UserService {
     }
 
     const scope = this.getDefaultScope(user.role);
-    const token = jwt.sign({ userId: user.id, role: user.role, scope, aud: "thermosense",sub:"thermosense" }, this.jwtSecret, {
-      expiresIn: "15m",
-    });
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        scope,
+        zoneIds: user.zoneIds,
+        aud: "thermosense",
+        sub: "thermosense",
+      },
+      this.jwtSecret,
+      {
+        expiresIn: "15m",
+      },
+    );
 
     const { password, ...userWithoutPassword } = user;
     return { token, user: userWithoutPassword };

@@ -52,27 +52,6 @@ async function main() {
     },
   });
 
-  // Seed Users
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const userPassword = await bcrypt.hash("user123", 10);
-
-  await prisma.user.createMany({
-    data: [
-      {
-        email: "admin@thermosense.com",
-        password: adminPassword,
-        name: "Admin User",
-        role: "admin",
-      },
-      {
-        email: "user@thermosense.com",
-        password: userPassword,
-        name: "Regular User",
-        role: "user",
-      },
-    ],
-  });
-
   const zoneDefinitions = [
     { name: "Zone A", description: "Open space nord" },
     { name: "Zone B", description: "Atelier production" },
@@ -92,6 +71,37 @@ async function main() {
 
     zones.push(zone);
   }
+
+  // Seed Users
+  const adminPassword = await bcrypt.hash("admin123", 10);
+  const operatorPassword = await bcrypt.hash("operator123", 10);
+  const readerPassword = await bcrypt.hash("reader123", 10);
+
+  await prisma.user.createMany({
+    data: [
+      {
+        email: "admin@thermosense.com",
+        password: adminPassword,
+        name: "Admin User",
+        role: "admin",
+        zoneIds: zones.map((zone) => zone.id),
+      },
+      {
+        email: "operator.zone-a@thermosense.com",
+        password: operatorPassword,
+        name: "Operator Zone A",
+        role: "operator",
+        zoneIds: [zones[0].id],
+      },
+      {
+        email: "reader@thermosense.com",
+        password: readerPassword,
+        name: "Reader User",
+        role: "reader",
+        zoneIds: [zones[0].id],
+      },
+    ],
+  });
 
   const sensors = [];
   const actuators = [];

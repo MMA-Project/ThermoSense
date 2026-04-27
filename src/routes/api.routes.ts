@@ -50,7 +50,10 @@ apiRouter.post(
 apiRouter.delete(
   "/sensor/:id",
   protect,
-  authorize("sensor:write"),
+  authorize({
+    requiredScope: "sensor:write",
+    allowedRoles: ["operator", "admin"],
+  }),
   sensorController.deleteSensorById,
 );
 

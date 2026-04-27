@@ -93,3 +93,33 @@ Exemple de payload :
 ```json
 { "action": "open" }
 ```
+
+## Contrôles d'autorisation (BFLA + BOLA)
+
+### Décisions d'implémentation
+
+| Question | Réponse |
+| --- | --- |
+| Où implémentez-vous le contrôle BFLA ? | Dans le middleware `authorize` (niveau route), avec double vérification `scope` + rôles autorisés. |
+| Où implémentez-vous le contrôle BOLA ? | Dans la logique métier (`SensorService`) sur la ressource ciblée, après chargement de la zone du capteur. |
+| En cas de BOLA, renvoyez-vous 403 ou 404 ? Pourquoi ? | `404` pour éviter la divulgation d'existence d'une ressource hors périmètre (anti-enumération). |
+| Comment le middleware récupère-t-il l'information de zone de l'utilisateur ? | Depuis le JWT (`zoneIds`) injecté dans `req.user` par `protect`; la valeur provient du champ `User.zoneIds` en base au login/signup. |
+
+### Scénarios couverts
+
+- BFLA adverse : un `reader` tente `DELETE /api/sensor/:id` et est rejeté (`403`).
+- BFLA nominal : un `operator` avec `sensor:write` passe la barrière fonctionnelle.
+- BOLA adverse : un `operator` autorisé en écriture mais hors zone du capteur est rejeté (`404`).
+- BOLA nominal : un `operator` dans la bonne zone (ou `admin`) peut supprimer (`204`).
+
+### Preuves automatiques
+
+Tests ajoutés :
+
+- `src/middleware/auth.middleware.test.ts` (preuves BFLA et BOLA, nominales et adverses)
+
+Exécution :
+
+```bash
+npm test
+```

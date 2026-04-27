@@ -8,10 +8,15 @@ export interface AuthRequest extends Request {
     userId: string;
     role: string;
     scope: string[];
+    zoneIds: string[];
   };
 }
 
-export const protect = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   let token: string | undefined;
 
   if (
@@ -27,20 +32,50 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret) as { userId: string; role: string; scope: string[],aud:string,sub:string };
-    req.user = decoded;
+    const decoded = jwt.verify(token, jwtSecret) as {
+      userId: string;
+      role: string;
+      scope: string[];
+      zoneIds?: string[];
+      aud: string;
+      sub: string;
+    };
+    req.user = {
+      userId: decoded.userId,
+      role: decoded.role,
+      scope: decoded.scope,
+      zoneIds: decoded.zoneIds ?? [],
+    };
     next();
   } catch (error) {
     res.status(401).json({ message: "Not authorized, token failed" });
   }
 };
 
-export const authorize = (requiredScope: string) => {
+export interface AuthorizationRequirements {
+  requiredScope: string;
+  allowedRoles?: string[];
+}
+
+export const authorize = (requirements: string | AuthorizationRequirements) => {
+  const requiredScope =
+    typeof requirements === "string"
+      ? requirements
+      : requirements.requiredScope;
+  const allowedRoles =
+    typeof requirements === "string" ? undefined : requirements.allowedRoles;
+
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.scope.includes(requiredScope)) {
       res.status(403).json({ message: "Forbidden: insufficient scope" });
       return;
     }
+
+    if (allowedRoles && !allowedRoles.includes(req.user.role)) {
+      res.status(403).json({ message: "Forbidden: insufficient scope" });
+      return;
+    }
+
     next();
   };
 };
