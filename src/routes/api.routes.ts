@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authorize, protect } from "../middleware/auth.middleware";
+import { createRateLimit } from "../middleware/rate-limit.middleware";
 import { ActuatorController } from "../resources/actuator/actuator.controller";
 import { AlertThresholdController } from "../resources/alert-threshold/alert-threshold.controller";
 import { MeasurementController } from "../resources/measurement/measurement.controller";
@@ -16,6 +17,11 @@ const alertThresholdController = new AlertThresholdController();
 const actuatorController = new ActuatorController();
 const zoneController = new ZoneController();
 const sensorController = new SensorController();
+
+const actuatorCommandRateLimit = createRateLimit({
+  windowMs: 60_000,
+  maxRequests: 10,
+});
 
 // Auth routes
 apiRouter.post("/auth/register", userController.signup);
@@ -38,6 +44,7 @@ apiRouter.patch(
 apiRouter.patch(
   "/actuator/:id",
   protect,
+  actuatorCommandRateLimit,
   authorize("actuator:write"),
   actuatorController.patchActuatorById,
 );

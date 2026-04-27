@@ -123,3 +123,14 @@ Exécution :
 ```bash
 npm test
 ```
+
+## Rate limiting (endpoint critique)
+
+Le rate limiting est appliqué sur l'endpoint d'actionneur critique `PATCH /api/actuator/:id` via un middleware dédié.
+
+| Paramètre | Votre choix | Justification |
+| --- | --- | --- |
+| Endpoint protégé | `PATCH /api/actuator/:id` | Endpoint de commande d'actionneur (impact opérationnel direct), sensible aux abus et aux rafales de requêtes. |
+| Seuil (nb requêtes / fenêtre de temps) | `10 requêtes / 60 secondes` | Permet des actions légitimes rapprochées (pilotage manuel) tout en bloquant les boucles agressives et brute-force de commandes. |
+| Dimension de comptage (par user, par IP, par device, global) | Par utilisateur authentifié (`userId` du JWT), avec fallback IP si non disponible | Plus pertinent que l'IP en environnement partagé/NAT ; aligne la limite avec l'identité responsable de l'action. |
+| Comportement en cas de dépassement (status code, header Retry-After) | `429 Too Many Requests` + header `Retry-After` (secondes restantes) | Comportement HTTP standard, exploitable côté client pour backoff/retry contrôlé. |
