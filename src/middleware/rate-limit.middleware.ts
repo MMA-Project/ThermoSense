@@ -1,6 +1,7 @@
 import type { NextFunction, Response } from "express";
 
 import type { AuthRequest } from "./auth.middleware";
+import { logSecurityEvent } from "../lib/security-logger";
 
 interface RateLimitOptions {
   windowMs: number;
@@ -45,6 +46,12 @@ export const createRateLimit = ({
         1,
         Math.ceil((windowMs - (now - entry.windowStartMs)) / 1000),
       );
+      logSecurityEvent({
+        level: "warn",
+        event: "rate_limited",
+        req,
+        reason: `threshold_exceeded:max=${maxRequests}:window_ms=${windowMs}:retry_after_s=${retryAfterSeconds}`,
+      });
       res.setHeader("Retry-After", String(retryAfterSeconds));
       res.status(429).json({
         message: "Too many requests on this endpoint, try again later",
