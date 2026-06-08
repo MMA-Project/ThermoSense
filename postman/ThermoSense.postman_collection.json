@@ -1,0 +1,428 @@
+{
+  "info": {
+    "_postman_id": "c8fb0fb4-9bb2-4e5f-9fc5-thermosense-api",
+    "name": "ThermoSense API",
+    "description": "Collection Postman importable pour les endpoints actuellement exposes par l'application Express. Les routes API sont prefixees par /api, les routes de documentation restent a la racine.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Response has a valid status code', function () {",
+          "  pm.expect(pm.response.code).to.be.below(600);",
+          "});",
+          "",
+          "const correlationId = pm.response.headers.get('x-correlation-id');",
+          "if (correlationId) {",
+          "  pm.collectionVariables.set('correlationId', correlationId);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "admin@thermosense.com",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "admin123",
+      "type": "string"
+    },
+    {
+      "key": "actuatorId",
+      "value": "replace-with-actuator-id",
+      "type": "string"
+    },
+    {
+      "key": "sensorId",
+      "value": "replace-with-sensor-id",
+      "type": "string"
+    },
+    {
+      "key": "zoneId",
+      "value": "replace-with-zone-id",
+      "type": "string"
+    },
+    {
+      "key": "correlationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"new.user@thermosense.com\",\n  \"password\": \"password123\",\n  \"name\": \"New User\",\n  \"role\": \"reader\",\n  \"zoneIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Cree un utilisateur. Le role et zoneIds sont acceptes par le schema local mais restent optionnels."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeded', function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Connecte un utilisateur et stocke automatiquement le JWT dans la variable de collection token."
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Retourne l'utilisateur authentifie. Necessite un token Bearer."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Measurements",
+      "item": [
+        {
+          "name": "List measurements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/measurement?zoneId=&sensorId=&type=&startDate=&endDate=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "measurement"
+              ],
+              "query": [
+                {
+                  "key": "zoneId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sensorId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Route protegee par measurement:read. Le controleur actuel retourne 501 tant que l'implementation n'est pas terminee."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alert thresholds",
+      "item": [
+        {
+          "name": "Patch alert threshold",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"replace-with-threshold-id\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"type\": \"temperature\",\n  \"minValue\": 18,\n  \"maxValue\": 26\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alert-threshold",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "alert-threshold"
+              ]
+            },
+            "description": "Route protegee par alert-threshold:write. Le controleur actuel retourne 501 tant que l'implementation n'est pas terminee."
+          },
+          "response": []
+        },
+        {
+          "name": "Create alert threshold for zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"temperature\",\n  \"minValue\": 18,\n  \"maxValue\": 26\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zone/{{zoneId}}/alert-threshold",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "zone",
+                "{{zoneId}}",
+                "alert-threshold"
+              ]
+            },
+            "description": "Route protegee par alert-threshold:write. Le controleur actuel retourne 501 tant que l'implementation n'est pas terminee."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Actuators",
+      "item": [
+        {
+          "name": "Patch actuator by id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"on\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/actuator/{{actuatorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "actuator",
+                "{{actuatorId}}"
+              ]
+            },
+            "description": "Met a jour un actionneur. Champs acceptes: name, zoneId, type, status, state, lastCommandAt. Necessite actuator:write."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sensors",
+      "item": [
+        {
+          "name": "Delete sensor by id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sensor/{{sensorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sensor",
+                "{{sensorId}}"
+              ]
+            },
+            "description": "Supprime un capteur. Necessite sensor:write et un role operator ou admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Docs",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "swagger"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OpenAPI JSON",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger.json",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "swagger.json"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OpenAPI YAML",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/openapi.yml",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi.yml"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
