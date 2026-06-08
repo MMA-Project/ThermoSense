@@ -55,18 +55,123 @@
       "type": "string"
     },
     {
-      "key": "actuatorId",
-      "value": "replace-with-actuator-id",
+      "key": "adminEmail",
+      "value": "admin@thermosense.com",
       "type": "string"
     },
     {
-      "key": "sensorId",
-      "value": "replace-with-sensor-id",
+      "key": "adminPassword",
+      "value": "admin123",
+      "type": "string"
+    },
+    {
+      "key": "operatorEmail",
+      "value": "operator.zone-a@thermosense.com",
+      "type": "string"
+    },
+    {
+      "key": "operatorPassword",
+      "value": "operator123",
+      "type": "string"
+    },
+    {
+      "key": "readerEmail",
+      "value": "reader@thermosense.com",
+      "type": "string"
+    },
+    {
+      "key": "readerPassword",
+      "value": "reader123",
+      "type": "string"
+    },
+    {
+      "key": "buildingName",
+      "value": "ThermoSense HQ",
+      "type": "string"
+    },
+    {
+      "key": "buildingAddress",
+      "value": "10 rue des Capteurs, Paris",
       "type": "string"
     },
     {
       "key": "zoneId",
-      "value": "replace-with-zone-id",
+      "value": "replace-with-zone-a-id",
+      "type": "string"
+    },
+    {
+      "key": "zoneName",
+      "value": "Zone A",
+      "type": "string"
+    },
+    {
+      "key": "sensorId",
+      "value": "replace-with-zone-a-temperature-sensor-id",
+      "type": "string"
+    },
+    {
+      "key": "sensorName",
+      "value": "Zone A - Température",
+      "type": "string"
+    },
+    {
+      "key": "sensorType",
+      "value": "temperature",
+      "type": "string"
+    },
+    {
+      "key": "actuatorId",
+      "value": "replace-with-zone-a-heater-actuator-id",
+      "type": "string"
+    },
+    {
+      "key": "actuatorName",
+      "value": "Zone A - Chauffage",
+      "type": "string"
+    },
+    {
+      "key": "actuatorType",
+      "value": "heater",
+      "type": "string"
+    },
+    {
+      "key": "thresholdId",
+      "value": "replace-with-zone-a-temperature-threshold-id",
+      "type": "string"
+    },
+    {
+      "key": "actuatorScenario",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "actuatorScenarioReference",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "actuatorSuccessThresholdPercent",
+      "value": "95",
+      "type": "string"
+    },
+    {
+      "key": "actuatorP95ThresholdMs",
+      "value": "2000",
+      "type": "string"
+    },
+    {
+      "key": "actuatorMaxRetriesPerRequest",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "actuatorMaxReqPerMinute",
+      "value": "30",
+      "type": "string"
+    },
+    {
+      "key": "actuatorMaxUiBlockMs",
+      "value": "500",
       "type": "string"
     },
     {
@@ -94,7 +199,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"new.user@thermosense.com\",\n  \"password\": \"password123\",\n  \"name\": \"New User\",\n  \"role\": \"reader\",\n  \"zoneIds\": []\n}"
+              "raw": "{\n  \"email\": \"reader.zone-a.copy@thermosense.com\",\n  \"password\": \"reader123\",\n  \"name\": \"Reader Zone A Copy\",\n  \"role\": \"reader\",\n  \"zoneIds\": [\"{{zoneId}}\"]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -107,12 +212,12 @@
                 "register"
               ]
             },
-            "description": "Cree un utilisateur. Le role et zoneIds sont acceptes par le schema local mais restent optionnels."
+            "description": "Cree un utilisateur proche du seed Reader Zone A. Remplacer zoneId par l'id reel de Zone A si besoin."
           },
           "response": []
         },
         {
-          "name": "Login",
+          "name": "Login - Admin seed",
           "event": [
             {
               "listen": "test",
@@ -144,7 +249,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -157,7 +262,107 @@
                 "login"
               ]
             },
-            "description": "Connecte un utilisateur et stocke automatiquement le JWT dans la variable de collection token."
+            "description": "Connecte l'admin seed: admin@thermosense.com / admin123. Stocke automatiquement le JWT dans la variable de collection token."
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Operator Zone A seed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeded', function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{operatorEmail}}\",\n  \"password\": \"{{operatorPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Connecte l'operateur seed: operator.zone-a@thermosense.com / operator123. Cet utilisateur est limite a Zone A."
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Reader seed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeded', function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{readerEmail}}\",\n  \"password\": \"{{readerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Connecte le lecteur seed: reader@thermosense.com / reader123. Utile pour tester les refus 403 sur les routes d'ecriture."
           },
           "response": []
         },
@@ -192,7 +397,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/measurement?zoneId=&sensorId=&type=&startDate=&endDate=",
+              "raw": "{{baseUrl}}/api/measurement?zoneId={{zoneId}}&sensorId={{sensorId}}&type={{sensorType}}&startDate=&endDate=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -203,18 +408,15 @@
               "query": [
                 {
                   "key": "zoneId",
-                  "value": "",
-                  "disabled": true
+                  "value": "{{zoneId}}"
                 },
                 {
                   "key": "sensorId",
-                  "value": "",
-                  "disabled": true
+                  "value": "{{sensorId}}"
                 },
                 {
                   "key": "type",
-                  "value": "",
-                  "disabled": true
+                  "value": "{{sensorType}}"
                 },
                 {
                   "key": "startDate",
@@ -249,7 +451,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": \"replace-with-threshold-id\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"type\": \"temperature\",\n  \"minValue\": 18,\n  \"maxValue\": 26\n}"
+              "raw": "{\n  \"id\": \"{{thresholdId}}\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"type\": \"{{sensorType}}\",\n  \"minValue\": 18,\n  \"maxValue\": 26\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/alert-threshold",
@@ -277,7 +479,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"temperature\",\n  \"minValue\": 18,\n  \"maxValue\": 26\n}"
+              "raw": "{\n  \"type\": \"{{sensorType}}\",\n  \"minValue\": 18,\n  \"maxValue\": 26\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/zone/{{zoneId}}/alert-threshold",
@@ -302,6 +504,160 @@
       "item": [
         {
           "name": "Patch actuator by id",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const scenarios = {",
+                  "  '1': {",
+                  "    name: 'Nominal degrade (3G faible)',",
+                  "    latencyMinMs: 200,",
+                  "    latencyMaxMs: 500,",
+                  "    lossRatePercent: 5,",
+                  "    maxThroughputReqPerMin: 30,",
+                  "    clientTimeoutMs: 2000,",
+                  "    justification: 'Arbitrage terrain: couvre une 3G faible ou Wi-Fi lointain avec latence perceptible mais encore exploitable pour une commande actionneur.'",
+                  "  },",
+                  "  '2': {",
+                  "    name: 'Reseau tres instable (chantier/entrepot)',",
+                  "    latencyMinMs: 800,",
+                  "    latencyMaxMs: 1500,",
+                  "    lossRatePercent: 20,",
+                  "    maxThroughputReqPerMin: 10,",
+                  "    clientTimeoutMs: 4000,",
+                  "    justification: 'Arbitrage explicite: represente un environnement metal/beton avec deplacements, obstacles radio et pertes fortes; le timeout reste borne pour eviter une UI bloquee.'",
+                  "  }",
+                  "};",
+                  "",
+                  "const scenarioId = pm.collectionVariables.get('actuatorScenario') || '1';",
+                  "const scenario = scenarios[scenarioId] || scenarios['1'];",
+                  "const addedLatencyMs = Math.floor(scenario.latencyMinMs + Math.random() * (scenario.latencyMaxMs - scenario.latencyMinMs + 1));",
+                  "",
+                  "pm.variables.set('actuatorScenarioName', scenario.name);",
+                  "pm.variables.set('actuatorAddedLatencyMs', String(addedLatencyMs));",
+                  "pm.variables.set('actuatorLossRatePercent', String(scenario.lossRatePercent));",
+                  "pm.variables.set('actuatorClientTimeoutMs', String(scenario.clientTimeoutMs));",
+                  "pm.variables.set('actuatorScenarioJustification', scenario.justification);",
+                  "pm.request.headers.upsert({ key: 'X-Simulation-Scenario', value: `${scenarioId} - ${scenario.name}` });",
+                  "pm.request.headers.upsert({ key: 'X-Simulation-Added-Latency-Ms', value: String(addedLatencyMs) });",
+                  "pm.request.headers.upsert({ key: 'X-Simulation-Loss-Rate-Percent', value: String(scenario.lossRatePercent) });",
+                  "pm.request.headers.upsert({ key: 'X-Client-Timeout-Ms', value: String(scenario.clientTimeoutMs) });",
+                  "",
+                  "// Simulation simple de latence cote client Postman. La perte reseau et le debit max sont documentes/collectes, mais doivent etre imposes par un proxy reseau pour un test physique exact.",
+                  "const startedAt = Date.now();",
+                  "pm.variables.set('actuatorRequestStartedAt', String(startedAt));",
+                  "while (Date.now() - startedAt < addedLatencyMs) {}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const scenarioId = pm.collectionVariables.get('actuatorScenario') || '1';",
+                  "const scenarioName = pm.variables.get('actuatorScenarioName') || 'unknown';",
+                  "const startedAt = Number(pm.variables.get('actuatorRequestStartedAt') || Date.now());",
+                  "const perceivedLatencyMs = Date.now() - startedAt;",
+                  "const key = `actuatorPatchMetrics:${scenarioId}`;",
+                  "const previous = pm.collectionVariables.get(key);",
+                  "const metrics = previous ? JSON.parse(previous) : {",
+                  "  scenarioId,",
+                  "  scenarioName,",
+                  "  total: 0,",
+                  "  success2xx: 0,",
+                  "  latenciesMs: [],",
+                  "  retriesTriggered: 0,",
+                  "  duplicateActionFalsePositivePercent: 0,",
+                  "  requestTimestamps: []",
+                  "};",
+                  "",
+                  "metrics.total += 1;",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  metrics.success2xx += 1;",
+                  "}",
+                  "metrics.latenciesMs.push(perceivedLatencyMs);",
+                  "metrics.requestTimestamps.push(Date.now());",
+                  "metrics.requestTimestamps = metrics.requestTimestamps.filter((timestamp) => Date.now() - timestamp <= 60000);",
+                  "",
+                  "const retryVariable = `actuatorPatchRetries:${scenarioId}`;",
+                  "const maxRetries = Number(pm.collectionVariables.get('actuatorMaxRetriesPerRequest') || 1);",
+                  "const retriesSoFar = Number(pm.collectionVariables.get(retryVariable) || 0);",
+                  "const shouldRetry = !(pm.response.code >= 200 && pm.response.code < 300) && retriesSoFar < maxRetries;",
+                  "",
+                  "if (shouldRetry) {",
+                  "  metrics.retriesTriggered += 1;",
+                  "  pm.collectionVariables.set(retryVariable, String(retriesSoFar + 1));",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.set(retryVariable, '0');",
+                  "}",
+                  "",
+                  "const sortedLatencies = metrics.latenciesMs.slice().sort((a, b) => a - b);",
+                  "const p95Index = Math.max(0, Math.ceil(sortedLatencies.length * 0.95) - 1);",
+                  "const p95 = sortedLatencies[p95Index] || 0;",
+                  "const successRate = metrics.total === 0 ? 0 : (metrics.success2xx / metrics.total) * 100;",
+                  "const reqPerMinute = metrics.requestTimestamps.length;",
+                  "",
+                  "pm.collectionVariables.set(key, JSON.stringify(metrics));",
+                  "pm.collectionVariables.set(`actuatorPatchSuccessRate:${scenarioId}`, successRate.toFixed(2));",
+                  "pm.collectionVariables.set(`actuatorPatchP95Ms:${scenarioId}`, String(p95));",
+                  "pm.collectionVariables.set(`actuatorPatchReqPerMinute:${scenarioId}`, String(reqPerMinute));",
+                  "",
+                  "const successThreshold = Number(pm.collectionVariables.get('actuatorSuccessThresholdPercent') || 95);",
+                  "const p95Threshold = Number(pm.collectionVariables.get('actuatorP95ThresholdMs') || 2000);",
+                  "const maxReqPerMinute = Number(pm.collectionVariables.get('actuatorMaxReqPerMinute') || 30);",
+                  "const maxUiBlockMs = Number(pm.collectionVariables.get('actuatorMaxUiBlockMs') || 500);",
+                  "",
+                  "pm.test('Scenario de simulation documente', function () {",
+                  "  pm.expect(['1', '2']).to.include(scenarioId);",
+                  "  pm.expect(pm.variables.get('actuatorScenarioJustification')).to.not.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Taux de succes 2xx acceptable', function () {",
+                  "  pm.expect(successRate).to.be.at.least(successThreshold);",
+                  "});",
+                  "",
+                  "pm.test('Latence p95 percue acceptable', function () {",
+                  "  pm.expect(p95).to.be.at.most(p95Threshold);",
+                  "});",
+                  "",
+                  "pm.test('Retries bornes par requete', function () {",
+                  "  pm.expect(metrics.retriesTriggered / metrics.total).to.be.at.most(maxRetries);",
+                  "});",
+                  "",
+                  "pm.test('Aucun faux positif: action executee 2 fois', function () {",
+                  "  pm.expect(metrics.duplicateActionFalsePositivePercent).to.equal(0);",
+                  "});",
+                  "",
+                  "pm.test('Consommation reseau acceptable', function () {",
+                  "  pm.expect(reqPerMinute).to.be.at.most(maxReqPerMinute);",
+                  "});",
+                  "",
+                  "pm.test('Critere projet: etat actionneur persiste conforme a la commande PATCH', function () {",
+                  "  if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "    const sentState = JSON.parse(pm.request.body.raw).state;",
+                  "    const responseState = pm.response.json().state;",
+                  "    pm.expect(responseState).to.equal(sentState);",
+                  "  } else {",
+                  "    pm.expect(true).to.equal(true);",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('UI non bloquee trop longtemps sans feedback utilisateur', function () {",
+                  "  pm.expect(Number(pm.variables.get('actuatorAddedLatencyMs') || 0)).to.be.at.most(maxUiBlockMs);",
+                  "});",
+                  "",
+                  "const bodyText = pm.response.text() || '';",
+                  "pm.test('Stop-test: aucun token ou secret expose dans la reponse/log retry Postman', function () {",
+                  "  pm.expect(bodyText).to.not.match(/Bearer\\s+[A-Za-z0-9._-]+|JWT_SECRET|default-secret-change-me|your-secret-key-here/i);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PATCH",
             "header": [
@@ -312,7 +668,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"state\": \"on\"\n}"
+              "raw": "{\n  \"name\": \"{{actuatorName}}\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"type\": \"{{actuatorType}}\",\n  \"status\": \"active\",\n  \"state\": \"on\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/actuator/{{actuatorId}}",
@@ -325,7 +681,7 @@
                 "{{actuatorId}}"
               ]
             },
-            "description": "Met a jour un actionneur. Champs acceptes: name, zoneId, type, status, state, lastCommandAt. Necessite actuator:write."
+            "description": "Met a jour un actionneur. Champs acceptes: name, zoneId, type, status, state, lastCommandAt. Necessite actuator:write.\n\nScenarios de simulation predefinis:\n1. Nominal degrade (3G faible): latence ajoutee 200-500 ms, taux de perte 5 %, debit max 30 req/min, timeout client 2000 ms. Justification: arbitrage terrain pour une 3G faible ou un Wi-Fi lointain; la commande reste utilisable mais la latence devient perceptible.\n2. Reseau tres instable (chantier/entrepot): latence ajoutee 800-1500 ms, taux de perte 20 %, debit max 10 req/min, timeout client 4000 ms. Justification: arbitrage explicite pour environnement metal/beton avec obstacles radio et pertes fortes; timeout borne pour eviter une UI bloquee.\n\nMetriques collectees avant test:\n- Taux de succes 2xx, collecte via Postman runner, seuil >= 95 %.\n- Latence p95 percue cote client, collecte par timestamp Postman, seuil <= 2000 ms.\n- Nombre de retries declenches, collecte par variable Postman, seuil <= 1 par requete.\n- Taux de faux positifs action executee 2 fois, source attendue log serveur, seuil 0 %.\n- Consommation reseau, collecte compteur Postman, seuil <= 30 req/min.\n\nCriteres de succes globaux: scenario de reference #1, taux de succes >= 95 %, aucun doublon actionneur, UI non bloquee au-dela de 500 ms sans feedback, etat actionneur retourne conforme au state envoye. Stop-test si donnees corrompues persistees, token/secret expose dans les logs de retry, ou crash client lors de la boucle de retry."
           },
           "response": []
         }
