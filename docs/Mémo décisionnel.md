@@ -11,7 +11,7 @@ L’API ThermoSense est une API centrale de gestion de flux de systèmes IoT pou
 * ### **Le choix retenu :**Versionning dans le header
 
 * **Les options écartées :** Versionning par URL   
-* **Le compromis assumé :** Pas de version claire dans l’url, mais assure une continuité dans l
+* **Le compromis assumé :** Pas de version claire dans l’url, mais assure une continuité dans la consommation de l'api par le reste des consommateurs
 
 ### Décision 2 : Mécanisme d'idempotence sur les opérations sensibles
 
